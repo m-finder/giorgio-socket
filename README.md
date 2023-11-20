@@ -10,7 +10,7 @@
 Add a socket server based on Swoole to your Laravel application.
 
 #### Preview
-![](https://repository-images.githubusercontent.com/721082370/1deaa081-2fad-493d-9220-d84a8804afe3)
+![](https://repository-images.githubusercontent.com/721082370/0240b5fa-69e2-4bf0-89f2-fbed407c2b54)
 
 
 #### Install
