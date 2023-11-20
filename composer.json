@@ -2,10 +2,10 @@
     "name": "wu/giorgio-socket",
     "description": "laravel swoole socket server",
     "keywords": [
-        "laravel",
-        "swoole",
-        "socket",
-        "im"
+        "Laravel",
+        "Swoole",
+        "Socket",
+        "Im"
     ],
     "type": "library",
     "license": "MIT",
