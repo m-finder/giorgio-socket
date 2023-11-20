@@ -36,16 +36,19 @@ class SocketMessage implements SocketMessageInterface
 
     private function connect(Server $server, $userId, $from): void
     {
-        info('bind', [
-            'user_id' => $userId,
-            'from' => $from
-        ]);
+        if(config('socket.log')){
+            info('socket bind', [
+                'user_id' => $userId,
+                'from' => $from
+            ]);
+        }
 
         if (!empty(Redis::client()->zscore('socket', $from))) {
             Redis::client()->zrem('socket', $from);
         }
         Redis::client()->zadd('socket', $from, $userId);
 
+        // send offline message
         while ($message = Redis::client()->rpop('socket_' . $userId . '_offline_messages')) {
             $to = json_decode($message, true)['to'] ?? '';
             if (!empty($to)) {
