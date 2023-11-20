@@ -15,16 +15,6 @@ Add a socket server based on Swoole to your Laravel application.
 
 #### Install
 
-create new application
-
-```
-laravel new website
-cd website
-```
-
-
-edit your redis config in env
-
 require socket server
 ```
 composer require wu/giorgio-socket
