@@ -3,10 +3,9 @@
     "description": "laravel swoole socket server",
     "keywords": [
         "laravel",
-        "typeScript",
-        "vite",
-        "vue",
-        "spa"
+        "swoole",
+        "socket",
+        "im"
     ],
     "type": "library",
     "version": "v1.0",
