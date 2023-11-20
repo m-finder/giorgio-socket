@@ -9,6 +9,7 @@
 ## About Giorgio Socket
 Add a socket server based on Swoole to your Laravel application.
 
+[ 中文文档 ](https://m-finder.github.io/2023/11/20/2023-11-20-laravel-swoole-socket/)
 ### Preview
 ![](https://repository-images.githubusercontent.com/721082370/0240b5fa-69e2-4bf0-89f2-fbed407c2b54)
 
