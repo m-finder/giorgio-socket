@@ -9,7 +9,7 @@ return [
     'log' => env('SOCKET_LOG', true),
     // system notice user id
     'system_id' => 999999999,
-    // event Handlers
+    // event handlers
     'handlers' => [
         'open' => \GiorGioSocket\Services\Handlers\SocketOpen::class,
         'message' => \GiorGioSocket\Services\Handlers\SocketMessage::class,

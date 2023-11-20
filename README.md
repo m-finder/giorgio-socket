@@ -9,28 +9,28 @@
 ## About Giorgio Socket
 Add a socket server based on Swoole to your Laravel application.
 
-#### Preview
+### Preview
 ![](https://repository-images.githubusercontent.com/721082370/0240b5fa-69e2-4bf0-89f2-fbed407c2b54)
 
 
-#### Install
+### Install
 
-require socket server
+Require socket server
 ```
 composer require wu/giorgio-socket
 ```
 
-publish config
+Publish config
 ```
 php artisan vendor:publish --provider="GiorgioSocket\Providers\SocketServiceProvider"
 ```
 
-start socket server
+Start socket server
 ```
 php artisan socket:start
 ```
 
-#### Important Considerations
+### Important Considerations
 
 * Redis is required.
 * You can customize your own business logic by implementing the interfaces under the folder `GiorgioSocket\Services\Handlers\Interfaces`.
@@ -75,7 +75,6 @@ php artisan socket:start
           }, interval * 1000);
         }
 
-        // stop
         function stopHeartbeat() {
           clearInterval(heartBeatTimer);
         }
@@ -141,7 +140,7 @@ php artisan socket:start
               data: message,
             }));
           } else {
-            console.log("WebSocket closed");
+            console.log("webSocket closed");
           }
         }
 
@@ -155,6 +154,6 @@ php artisan socket:start
       </script>
   @endauth
   ```
-#### License
+### License
 
 The Giorgio Socket is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
