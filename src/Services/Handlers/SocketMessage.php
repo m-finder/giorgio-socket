@@ -13,28 +13,25 @@ class SocketMessage implements SocketMessageInterface
     public function handle(Server $server, Frame $frame): void
     {
 
-        $from = $frame->fd;
         $data = json_decode($frame->data, true);
-        $type = $data['type'];
 
         if (config('socket.log')) {
             info('socket message', [
-                'from' => $from,
+                'from' => $frame->fd,
                 'to' => $data['to'] ?? '',
                 'data' => $data,
             ]);
         }
 
-        match ($type) {
-            'connect' => $this->connect($server, $data['user_id'], $from),
+        match ($data['type']) {
+            'connect' => $this->connect($server, $data['user_id'], $frame->fd),
             'message', 'system' => $this->send($server, $data['to'], $frame->data),
-            'close' => $this->close($from),
+            'close' => $this->close($frame->fd),
         };
-
 
     }
 
-    private function connect(Server $server, $userId, $from): void
+    protected function connect(Server $server, $userId, $from): void
     {
         if(config('socket.log')){
             info('socket bind', [
@@ -43,6 +40,7 @@ class SocketMessage implements SocketMessageInterface
             ]);
         }
 
+        // bind user_id to fd
         if (!empty(Redis::client()->zscore('socket', $from))) {
             Redis::client()->zrem('socket', $from);
         }
@@ -57,15 +55,16 @@ class SocketMessage implements SocketMessageInterface
         }
     }
 
-    private function close($from): void
+    protected function close($from): void
     {
         Redis::client()->zrem('socket', $from);
     }
 
-    private function send(Server $server, $to, $data): void
+    protected function send(Server $server, $to, $data): void
     {
         // send message to all
         if ($to === 'all') {
+
             $ids = Redis::client()->zrange('socket', 0, -1);
             foreach ($ids as $to) {
                 $this->push($server, $to, $data, $to);
@@ -77,7 +76,7 @@ class SocketMessage implements SocketMessageInterface
             $originalTo = $to;
             $to = Redis::client()->zscore('socket', $to);
             if (empty($to)) {
-                info('socket error', [
+                logger('socket error', [
                     'msg' => 'user not found',
                     'data' => $data
                 ]);
@@ -89,11 +88,12 @@ class SocketMessage implements SocketMessageInterface
 
     }
 
-    private function push($server, $to, $data, $userId): void
+    protected function push($server, $to, $data, $userId): void
     {
         if ($server->exist(intval($to))) {
             $server->push(intval($to), $data);
         } else {
+            // save offline message
             Redis::client()->lpush('socket_' . $userId . '_offline_messages', $data);
         }
     }
