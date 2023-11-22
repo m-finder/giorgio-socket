@@ -25,7 +25,7 @@ class ClientSend implements ClientSendInterface
             if ($ret) {
                 $client->push(json_encode([
                     'user_id' => config('socket.system_id'),
-                    'user_name' => '系统通知',
+                    'user_name' => config('socket.system_name'),
                     'type' => 'system',
                     'to' => $event->to,
                     'data' => $event->message,

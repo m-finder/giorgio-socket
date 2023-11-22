@@ -35,7 +35,7 @@ php artisan socket:start
 
 * Redis is required.
 * You can customize your own business logic by implementing the interfaces under the folder `GiorgioSocket\Services\Handlers\Interfaces`.
-* If you want to send messages from the server, you need to modify the `QUEUE_CONNECTION` configuration in the .env file to "redis" or another asynchronous queue driver. After making the configuration change, you should run the following command: `php artisan queue:work`, You can invoke it as shown in the following code.
+* If you want to send messages from the server, you need to modify the `QUEUE_CONNECTION` configuration in the .env file to "redis" or another asynchronous queue driver. After making the configuration change, you should run the following command: `php artisan queue:work --queue=socket-listener`, You can invoke it as shown in the following code.
     ```
     Route::any('socket', function (Request $request){
         \GiorgioSocket\Events\SocketEvent::dispatch($request->get('to'), $request->get('message'));
