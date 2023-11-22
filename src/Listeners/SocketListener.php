@@ -8,11 +8,12 @@ class SocketListener implements ShouldQueue
 {
     public string $queue = 'socket-listener';
 
-    public function __construct()
-    {
 
-    }
-
+    /**
+     * handle message from http api
+     * @param object $event
+     * @return void
+     */
     public function handle(object $event): void
     {
         $client = new (config('socket.handlers.client'));

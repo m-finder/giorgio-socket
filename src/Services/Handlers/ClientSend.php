@@ -9,6 +9,11 @@ use Swoole\Coroutine\Http\Client;
 class ClientSend implements ClientSendInterface
 {
 
+    /**
+     * http api send socket message
+     * @param object $event
+     * @return void
+     */
     public function handle(object $event): void
     {
         if (config('socket.log')) {
