@@ -36,6 +36,10 @@ class SocketServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * register commands
+     * @return void
+     */
     protected function registerCommands(): void
     {
         if (!$this->app->runningInConsole()) {
@@ -47,6 +51,10 @@ class SocketServiceProvider extends ServiceProvider
         ]);
     }
 
+    /**
+     * publishing
+     * @return void
+     */
     protected function publishing(): void
     {
         $this->publishes([__DIR__ . '/../../config' => config_path()]);
