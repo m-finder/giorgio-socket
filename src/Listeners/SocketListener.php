@@ -6,22 +6,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SocketListener implements ShouldQueue
 {
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
+    public string $queue = 'socket-listener';
+
     public function __construct()
     {
-        //
+
     }
 
-    /**
-     * Handle the event.
-     *
-     * @param object $event
-     * @return void
-     */
     public function handle(object $event): void
     {
         $client = new (config('socket.handlers.client'));
