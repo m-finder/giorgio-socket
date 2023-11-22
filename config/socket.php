@@ -8,7 +8,8 @@ return [
     // is logging enabled?
     'log' => env('SOCKET_LOG', true),
     // system notice user id
-    'system_id' => 999999999,
+    'system_id' => env('APP_NAME', 999999999),
+    'system_name' => env('APP_NAME', 'System'),
     // event handlers
     'handlers' => [
         'open' => \GiorGioSocket\Services\Handlers\SocketOpen::class,

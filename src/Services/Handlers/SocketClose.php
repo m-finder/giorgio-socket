@@ -8,6 +8,12 @@ use Swoole\WebSocket\Server;
 class SocketClose implements SocketCloseInterface
 {
 
+    /**
+     * socket server on close
+     * @param Server $server
+     * @param $fd
+     * @return void
+     */
     public function handle(Server $server, $fd): void
     {
         if (config('socket.log')) {

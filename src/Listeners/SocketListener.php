@@ -6,19 +6,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SocketListener implements ShouldQueue
 {
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
+    public string $queue = 'socket-listener';
+
 
     /**
-     * Handle the event.
-     *
+     * handle message from http api
      * @param object $event
      * @return void
      */

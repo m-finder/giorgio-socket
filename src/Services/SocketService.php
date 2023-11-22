@@ -6,6 +6,10 @@ use Swoole\WebSocket\Server;
 
 class SocketService
 {
+    /**
+     * socket server start
+     * @return void
+     */
     public function start(): void
     {
         $server = new Server(config('socket.host', '0.0.0.0'), config('socket.port', 9501));
