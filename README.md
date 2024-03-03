@@ -33,14 +33,23 @@ php artisan socket:start
 
 ### Important Considerations
 
-* Redis is required.
 * You can customize your own business logic by implementing the interfaces under the folder `GiorgioSocket\Services\Handlers\Interfaces`.
-* If you want to send messages from the server, you need to modify the `QUEUE_CONNECTION` configuration in the .env file to "redis" or another asynchronous queue driver. After making the configuration change, you should run the following command: `php artisan queue:work --queue=socket-listener`, You can invoke it as shown in the following code.
-    ```
-    Route::any('socket', function (Request $request){
-        \GiorgioSocket\Events\SocketEvent::dispatch($request->get('to'), $request->get('message'));
+* If you want to send a message from the server, there are two ways to do it:
+  * First: using an HTTP client.
+    ```php
+    Route::get('/socket', function () {
+        \Illuminate\Support\Facades\Http::asForm()->post('http://127.0.0.1:9501', [
+            'to' => 2,
+            'message' => 'server message',
+        ]);
     });
     ```
+  * Second：using Listener，Redis is required. and you need to modify the `QUEUE_CONNECTION` configuration in the .env file to "redis" or another asynchronous queue driver. After making the configuration change, you should run the following command: `php artisan queue:work --queue=socket-listener`, You can invoke it as shown in the following code.
+      ```
+      Route::any('socket', function (Request $request){
+          \GiorgioSocket\Events\SocketEvent::dispatch($request->get('to'), $request->get('message'));
+      });
+      ```
 * If you are using the `laravel/breeze` package and working with Blade templates, you can paste the following code into `dashboard.blade.php` for a quick test.
   ```
   @auth
