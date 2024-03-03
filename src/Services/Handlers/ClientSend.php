@@ -5,7 +5,6 @@ namespace GiorgioSocket\Services\Handlers;
 use GiorgioSocket\Services\Handlers\Interfaces\ClientSendInterface;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Http\Client;
-use function Swoole\Coroutine\run;
 
 class ClientSend implements ClientSendInterface
 {
@@ -24,7 +23,11 @@ class ClientSend implements ClientSendInterface
             ]);
         }
 
-        run(function () use ($event) {
+        /**
+         * import run function should open swoole short name
+         * php.ini swoole.use_shortname=On/Off
+        */
+        \Swoole\Coroutine\run(function () use ($event) {
             $client = new Client(config('socket.host', '0.0.0.0'), config('socket.port', 9501));
             $ret = $client->upgrade('/');
 
