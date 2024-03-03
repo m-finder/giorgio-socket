@@ -35,7 +35,7 @@ php artisan socket:start
 
 * You can customize your own business logic by implementing the interfaces under the folder `GiorgioSocket\Services\Handlers\Interfaces`.
 * If you want to send a message from the server, there are two ways to do it:
-  * First: Using an HTTP client.
+  * First: Using HTTP client.
     ```php
     Route::get('/socket', function () {
         \Illuminate\Support\Facades\Http::asForm()->post('http://127.0.0.1:9501', [
