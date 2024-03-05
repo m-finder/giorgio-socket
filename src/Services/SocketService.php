@@ -2,13 +2,13 @@
 
 namespace GiorgioSocket\Services;
 
+use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
 
 class SocketService
 {
     /**
      * socket server start
-     * @return void
      */
     public function start(): void
     {
@@ -23,6 +23,24 @@ class SocketService
         // 监听 WebSocket 消息事件。
         $message = new (config('socket.handlers.message'));
         $server->on('message', function ($server, $frame) use ($message) {
+            $message->handle($server, $frame);
+        });
+
+        // http request
+        $server->on('request', function ($request, $response) use ($server, $message) {
+            $params = $request->post;
+            if (empty($params)) {
+                return;
+            }
+
+            // build system message
+            $params['type'] = 'system';
+            $params['user_name'] = config('socket.system_name');
+            $params['data'] = $params['message'];
+
+            $frame = new Frame();
+            $frame->fd = config('socket.system_id');
+            $frame->data = json_encode($params, JSON_UNESCAPED_UNICODE);
             $message->handle($server, $frame);
         });
 

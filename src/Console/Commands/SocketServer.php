@@ -23,16 +23,13 @@ class SocketServer extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle(): int
     {
-        $this->line("socket server is starting");
+        $this->line('socket server is starting');
 
         Socket::start();
 
         return self::SUCCESS;
     }
-
 }

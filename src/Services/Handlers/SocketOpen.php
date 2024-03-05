@@ -6,12 +6,8 @@ use GiorgioSocket\Services\Handlers\Interfaces\SocketOpenInterface;
 
 class SocketOpen implements SocketOpenInterface
 {
-
     /**
      * socket server on open
-     * @param $server
-     * @param $request
-     * @return void
      */
     public function handle($server, $request): void
     {

@@ -17,6 +17,5 @@ class SocketEvent
      */
     public function __construct(public $to = null, public $message = null)
     {
-
     }
 }
