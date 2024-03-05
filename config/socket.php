@@ -16,5 +16,5 @@ return [
         'message' => \GiorGioSocket\Services\Handlers\SocketMessage::class,
         'close' => \GiorGioSocket\Services\Handlers\SocketClose::class,
         'client' => \GiorGioSocket\Services\Handlers\ClientSend::class,
-    ]
+    ],
 ];

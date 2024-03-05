@@ -8,14 +8,14 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 
 class EventServiceProvider extends ServiceProvider
 {
-
     /**
      * socket event listener
+     *
      * @var array[]
      */
     protected $listen = [
         SocketEvent::class => [
-            SocketListener::class
-        ]
+            SocketListener::class,
+        ],
     ];
 }

@@ -8,11 +8,8 @@ use Swoole\Coroutine\Http\Client;
 
 class ClientSend implements ClientSendInterface
 {
-
     /**
      * http api send socket message
-     * @param object $event
-     * @return void
      */
     public function handle(object $event): void
     {
@@ -26,7 +23,7 @@ class ClientSend implements ClientSendInterface
         /**
          * import run function should open swoole short name
          * php.ini swoole.use_shortname=On/Off
-        */
+         */
         \Swoole\Coroutine\run(function () use ($event) {
             $client = new Client(config('socket.host', '0.0.0.0'), config('socket.port', 9501));
             $ret = $client->upgrade('/');

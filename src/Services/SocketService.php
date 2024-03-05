@@ -7,14 +7,11 @@ use Swoole\WebSocket\Server;
 
 class SocketService
 {
-
     /**
      * socket server start
-     * @return void
      */
     public function start(): void
     {
-
         $server = new Server(config('socket.host', '0.0.0.0'), config('socket.port', 9501));
 
         // 监听 WebSocket 连接事件。
@@ -31,7 +28,7 @@ class SocketService
 
         $server->on('request', function ($request, $response) use ($server, $message) {
             $params = $request->post;
-            if(empty($params)){
+            if (empty($params)) {
                 return;
             }
 

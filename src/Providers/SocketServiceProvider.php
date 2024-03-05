@@ -10,12 +10,10 @@ class SocketServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
-     *
-     * @return void
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/socket.php', 'socket');
+        $this->mergeConfigFrom(__DIR__.'/../../config/socket.php', 'socket');
 
         $this->app->singleton('socket', function () {
             return new SocketService();
@@ -24,8 +22,6 @@ class SocketServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -38,11 +34,10 @@ class SocketServiceProvider extends ServiceProvider
 
     /**
      * register commands
-     * @return void
      */
     protected function registerCommands(): void
     {
-        if (!$this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             return;
         }
 
@@ -53,10 +48,9 @@ class SocketServiceProvider extends ServiceProvider
 
     /**
      * publishing
-     * @return void
      */
     protected function publishing(): void
     {
-        $this->publishes([__DIR__ . '/../../config' => config_path()]);
+        $this->publishes([__DIR__.'/../../config' => config_path()]);
     }
 }
