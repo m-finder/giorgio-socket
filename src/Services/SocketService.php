@@ -26,7 +26,6 @@ class SocketService
             $message->handle($server, $frame);
         });
 
-        // http request
         $server->on('request', function ($request, $response) use ($server, $message) {
             $params = $request->post;
             if (empty($params)) {
@@ -53,6 +52,7 @@ class SocketService
         if (config('socket.log')) {
             info('socket server created');
         }
+
         $server->start();
     }
 }
