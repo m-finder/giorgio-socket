@@ -3,42 +3,29 @@
 namespace GiorgioSocket\Services\Handlers;
 
 use GiorgioSocket\Services\Handlers\Interfaces\ClientSendInterface;
-use Swoole\Coroutine;
-use Swoole\Coroutine\Http\Client;
+use GiorgioSocket\Services\TransportSecurity;
+use Illuminate\Support\Facades\Http;
 
+/** 受信任的服务端推送客户端，校验证书并禁止携带密钥跟随重定向。 */
 class ClientSend implements ClientSendInterface
 {
-    /**
-     * http api send socket message
-     */
     public function handle(object $event): void
     {
-        if (config('socket.log')) {
-            info('socket listener', [
-                'to' => $event->to,
-                'message' => $event->message,
-            ]);
+        $secret = (string) config('socket.push_token', '');
+        if ($secret === '') {
+            throw new \RuntimeException('SOCKET_PUSH_TOKEN must be configured.');
         }
-
-        /**
-         * import run function should open swoole short name
-         * php.ini swoole.use_shortname=On/Off
-         */
-        \Swoole\Coroutine\run(function () use ($event) {
-            $client = new Client(config('socket.host', '0.0.0.0'), config('socket.port', 9501));
-            $ret = $client->upgrade('/');
-
-            if ($ret) {
-                $client->push(json_encode([
-                    'user_id' => config('socket.system_id'),
-                    'user_name' => config('socket.system_name'),
-                    'type' => 'system',
-                    'to' => $event->to,
-                    'data' => $event->message,
-                ], JSON_UNESCAPED_UNICODE));
-
-                Coroutine::sleep(0.1);
-            }
-        });
+        $url = (string) config('socket.push_url', 'http://127.0.0.1:9501/push');
+        TransportSecurity::assertPushUrl($url);
+        $caFile = config('socket.push_ca_file');
+        if ($caFile && (! is_string($caFile) || ! is_file($caFile) || ! is_readable($caFile))) {
+            throw new \RuntimeException('Socket push CA file must be readable.');
+        }
+        $response = Http::withToken($secret)->withOptions(['verify' => $caFile ?: true, 'allow_redirects' => false])->timeout(5)->post($url, [
+            'to' => $event->to, 'message' => $event->message,
+        ])->throw();
+        if (! $response->successful()) {
+            throw new \RuntimeException('Socket push failed with HTTP '.$response->status());
+        }
     }
 }

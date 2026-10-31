@@ -2,112 +2,96 @@
 
 namespace GiorgioSocket\Services\Handlers;
 
+use GiorgioSocket\Services\ConnectionRegistry;
 use GiorgioSocket\Services\Handlers\Interfaces\SocketMessageInterface;
-use Illuminate\Support\Facades\Redis;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
 
+/** 首帧鉴权、心跳续期和投递；业务消息默认交给已鉴权的 HTTP 接口。 */
 class SocketMessage implements SocketMessageInterface
 {
-    /**
-     * socket server on message
-     */
     public function handle(Server $server, Frame $frame): void
     {
-        $data = json_decode($frame->data, true);
-
-        if (config('socket.log')) {
-            info('socket message', [
-                'from' => $frame->fd,
-                'to' => $data['to'] ?? '',
-                'data' => $data,
-            ]);
-        }
-
-        match ($data['type']) {
-            'connect' => $this->connect($server, $data['user_id'], $frame->fd),
-            'message', 'system' => $this->receive($server, $data['to'], $frame->data),
-            'close' => $this->close($frame->fd),
-        };
-    }
-
-    /**
-     * socket message type is connect
-     */
-    protected function connect(Server $server, $userId, $from): void
-    {
-        if (config('socket.log')) {
-            info('socket bind', [
-                'user_id' => $userId,
-                'from' => $from,
-            ]);
-        }
-
-        // bind user_id to fd
-        if (! empty(Redis::client()->zscore('socket', $from))) {
-            Redis::client()->zrem('socket', $from);
-        }
-        Redis::client()->zadd('socket', $from, $userId);
-
-        // send offline message
-        while ($message = Redis::client()->rpop('socket_'.$userId.'_offline_messages')) {
-            info('offline read', json_decode($message, true));
-            $to = json_decode($message, true)['to'] ?? '';
-            if (! empty($to)) {
-                $this->send($server, $from, $message, $userId);
-            }
-        }
-    }
-
-    /**
-     * socket message type is close
-     */
-    protected function close($from): void
-    {
-        Redis::client()->zrem('socket', $from);
-    }
-
-    /**
-     * receive message
-     */
-    protected function receive(Server $server, $to, $data): void
-    {
-        // send message to all
-        if ($to === 'all') {
-            $ids = Redis::client()->zrange('socket', 0, -1);
-            foreach ($ids as $to) {
-                $this->send($server, $to, $data, $to);
-            }
-        } else {
-            // send message to one
-            $originalTo = $to;
-            $to = Redis::client()->zscore('socket', $to);
-            if (empty($to)) {
-                logger('socket error', [
-                    'msg' => 'user not found',
-                    'data' => $data,
-                ]);
+        try {
+            if (strlen($frame->data) > (int) config('socket.max_message_bytes', 65536)) {
+                $server->disconnect($frame->fd, 1009, 'Message too large');
 
                 return;
             }
+            $data = json_decode($frame->data, true, 32, JSON_THROW_ON_ERROR);
+            if (! is_array($data) || ! is_string($data['type'] ?? null)) {
+                throw new \InvalidArgumentException('Invalid packet.');
+            }
+            $registry = app(ConnectionRegistry::class);
+            if ($data['type'] === 'connect') {
+                if ($registry->user($frame->fd) !== null) {
+                    throw new \InvalidArgumentException('Connection is already authenticated.');
+                }
+                // 身份来自服务端鉴权器，忽略报文里自报的 user_id。
+                $authenticate = config('socket.authenticate');
+                $id = $authenticate ? app($authenticate)($data) : null;
+                if (! is_int($id) && ! is_string($id)) {
+                    $server->disconnect($frame->fd, 1008, 'Authentication required');
 
-            $this->send($server, $to, $data, $originalTo);
+                    return;
+                }
+                $registry->bind($frame->fd, (string) $id, $data);
+                $registry->presence((string) $id, true);
+                $server->push($frame->fd, json_encode(['type' => 'connected', 'user_id' => $id], JSON_THROW_ON_ERROR));
+                while (($pending = $registry->pending((string) $id)) !== null) {
+                    if (! $server->isEstablished($frame->fd) || ! $server->push($frame->fd, $pending)) {
+                        break;
+                    }
+                    $registry->acknowledge((string) $id);
+                }
+
+                return;
+            }
+            $id = $registry->user($frame->fd);
+            if ($id === null) {
+                $server->disconnect($frame->fd, 1008, 'Authentication required');
+
+                return;
+            }
+            // 每次操作重新检查登录令牌，保证注销或吊销及时生效。
+            $authenticate = config('socket.authenticate');
+            if (! $authenticate || (string) app($authenticate)($registry->credentials($frame->fd), true) !== $id) {
+                $server->disconnect($frame->fd, 1008, 'Authentication expired');
+
+                return;
+            }
+            if ($data['type'] === 'ping' || ($data['data'] ?? null) === 'heart_beat') {
+                $registry->presence($id, true);
+                $server->push($frame->fd, json_encode(['type' => 'pong'], JSON_THROW_ON_ERROR));
+            } elseif ($data['type'] === 'close') {
+                $server->disconnect($frame->fd, 1000, 'Client closed');
+            } elseif ($data['type'] === 'message' && config('socket.allow_client_messages', false) && isset($data['to']) && $data['to'] !== 'all') {
+                $this->deliver($server, (string) $data['to'], json_encode(array_merge($data, ['user_id' => $id]), JSON_THROW_ON_ERROR));
+            } else {
+                $server->push($frame->fd, json_encode(['type' => 'error', 'message' => 'Unsupported packet. Use the authenticated application API.'], JSON_THROW_ON_ERROR));
+            }
+        } catch (\JsonException|\InvalidArgumentException) {
+            $server->push($frame->fd, '{"type":"error","message":"Invalid packet."}');
+        } catch (\Throwable $error) {
+            report($error);
+            $server->disconnect($frame->fd, 1011, 'Service unavailable');
         }
     }
 
-    /**
-     * send message
-     */
-    protected function send($server, $to, $data, $userId): void
+    /** 向所有在线连接投递；全部失败时才进入离线队列。 */
+    public function deliver(Server $server, string $userId, string $message): void
     {
-        if ($server->exist(intval($to))) {
-            $server->push(intval($to), $data);
-        } else {
-            // save offline message
-            if (config('socket.log')) {
-                info('socket offline message', json_decode($data, true));
+        $registry = app(ConnectionRegistry::class);
+        $delivered = false;
+        foreach ($registry->connections($userId) as $fd) {
+            if ($server->isEstablished($fd) && $server->push($fd, $message)) {
+                $delivered = true;
+            } else {
+                $registry->remove($fd);
             }
-            Redis::client()->lpush('socket_'.$userId.'_offline_messages', $data);
+        }
+        if (! $delivered) {
+            $registry->enqueue($userId, $message);
         }
     }
 }
