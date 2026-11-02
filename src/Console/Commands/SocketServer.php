@@ -19,7 +19,7 @@ class SocketServer extends Command
      *
      * @var string
      */
-    protected $description = 'Swoole Socket Server';
+    protected $description = 'Start the WebSocket server (Swoole or native PHP)';
 
     /**
      * Execute the console command.

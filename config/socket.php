@@ -1,6 +1,8 @@
 <?php
 
 return [
+    // auto：非 Windows 且提供 Swoole WebSocket Server 时优先使用，否则使用原生 PHP。
+    'driver' => env('SOCKET_DRIVER', 'auto'),
     'host' => env('SOCKET_HOST', '127.0.0.1'),
     'port' => env('SOCKET_PORT', 9501),
     'log' => env('SOCKET_LOG', true),
