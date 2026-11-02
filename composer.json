@@ -1,6 +1,6 @@
 {
     "name": "wu/giorgio-socket",
-    "description": "laravel swoole socket server",
+    "description": "Laravel WebSocket server with Swoole and native PHP transports",
     "keywords": [
         "Laravel",
         "Swoole",
@@ -12,13 +12,16 @@
     "authors": [
         {
             "name": "m-finder",
-            "email": "m@m-finder.com"
+            "email": "yf-wu@qq.com"
         }
     ],
     "require": {
         "php": "^8.0.2",
-        "ext-swoole": "*",
         "laravel/framework": ">=9.0"
+    },
+    "suggest": {
+        "ext-swoole": "Preferred WebSocket transport on non-Windows systems",
+        "ext-openssl": "Required for direct TLS listeners"
     },
     "autoload": {
         "psr-4": {

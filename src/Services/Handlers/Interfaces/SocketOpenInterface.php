@@ -2,9 +2,10 @@
 
 namespace GiorgioSocket\Services\Handlers\Interfaces;
 
+use GiorgioSocket\Services\Native\Server as NativeServer;
 use Swoole\WebSocket\Server;
 
 interface SocketOpenInterface
 {
-    public function handle(Server $server, $request);
+    public function handle(Server|NativeServer $server, $request);
 }

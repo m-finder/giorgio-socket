@@ -4,13 +4,15 @@ namespace GiorgioSocket\Services\Handlers;
 
 use GiorgioSocket\Services\ConnectionRegistry;
 use GiorgioSocket\Services\Handlers\Interfaces\SocketMessageInterface;
+use GiorgioSocket\Services\Native\Frame as NativeFrame;
+use GiorgioSocket\Services\Native\Server as NativeServer;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
 
 /** 首帧鉴权、心跳续期和投递；业务消息默认交给已鉴权的 HTTP 接口。 */
 class SocketMessage implements SocketMessageInterface
 {
-    public function handle(Server $server, Frame $frame): void
+    public function handle(Server|NativeServer $server, Frame|NativeFrame $frame): void
     {
         try {
             if (strlen($frame->data) > (int) config('socket.max_message_bytes', 65536)) {
@@ -79,7 +81,7 @@ class SocketMessage implements SocketMessageInterface
     }
 
     /** 向所有在线连接投递；全部失败时才进入离线队列。 */
-    public function deliver(Server $server, string $userId, string $message): void
+    public function deliver(Server|NativeServer $server, string $userId, string $message): void
     {
         $registry = app(ConnectionRegistry::class);
         $delivered = false;
