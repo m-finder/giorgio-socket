@@ -27,6 +27,8 @@ return [
     // 可选持久事件表；由 socket-migrations 发布，或指定已有兼容表。
     'events' => [
         'table' => env('SOCKET_EVENTS_TABLE', 'socket_events'),
+        // Optional callable: __invoke(string $authenticatedUserId, int $cursor): array.
+        'reader' => null,
         // 仅清理已发布超过保留时长的事件；由宿主调度 socket:prune-events。
         'retention_hours' => env('SOCKET_EVENTS_RETENTION_HOURS', 168),
         'prune_batch_size' => 1000,

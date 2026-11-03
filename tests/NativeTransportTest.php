@@ -143,7 +143,7 @@ class NativeTransportTest extends TestCase
         $registry = Mockery::mock(ConnectionRegistry::class);
         $registry->shouldReceive('user')->with(1)->twice()->andReturn(null, '7');
         $registry->shouldReceive('bind')->once()->with(1, '7', ['type' => 'connect', 'token' => 'valid', 'user_id' => 999]);
-        $registry->shouldReceive('presence')->with('7', true)->twice();
+        $registry->shouldReceive('presence')->with('7', true)->once();
         $registry->shouldReceive('pending')->with('7')->twice()->andReturn('offline', null);
         $registry->shouldReceive('acknowledge')->with('7')->once();
         $registry->shouldReceive('credentials')->with(1)->once()->andReturn(['token' => 'valid']);

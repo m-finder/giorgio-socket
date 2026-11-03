@@ -4,6 +4,7 @@ namespace GiorgioSocket\Services;
 
 use GiorgioSocket\Services\Native\Server as NativeServer;
 use Swoole\WebSocket\Server;
+use Illuminate\Support\Facades\Redis;
 
 /** 启动 WebSocket，并在启动前检查 TLS 配置。 */
 class SocketService
@@ -32,6 +33,10 @@ class SocketService
             : new NativeServer($host, $port);
         $server->set($configuration['settings']);
         app(ConnectionRegistry::class)->reset();
+        foreach (Redis::connections() ?? [] as $name => $connection) {
+            $connection->disconnect();
+            Redis::purge($name);
+        }
         $open = app(config('socket.handlers.open'));
         $message = app(config('socket.handlers.message'));
         $close = app(config('socket.handlers.close'));

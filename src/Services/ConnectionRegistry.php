@@ -23,7 +23,9 @@ class ConnectionRegistry
     /** 返回该用户的所有连接号；发送前仍需检查连接是否存活。 */
     public function connections(string $id): array
     {
-        return array_map('intval', Redis::smembers($this->key('user:'.$id)));
+        $members = Redis::smembers($this->key('user:'.$id));
+
+        return is_array($members) ? array_map('intval', $members) : [];
     }
 
     /** 认证成功后绑定身份，并保存用于后续心跳重新验证的凭据。 */
@@ -98,7 +100,11 @@ class ConnectionRegistry
     public function presence(string $id, bool $online): void
     {
         if ($handler = config('socket.presence')) {
-            app($handler)($id, $online);
+            try {
+                app($handler)($id, $online);
+            } catch (\Throwable $error) {
+                report($error);
+            }
         }
     }
 }
