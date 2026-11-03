@@ -162,6 +162,14 @@ php artisan socket:events
 php artisan socket:events --once
 ```
 
+已认证的 WebSocket 连接可补收事件：
+
+```json
+{"type":"sync","after":80,"request_id":1}
+```
+
+服务端返回 `{"type":"events","request_id":1,"events":[...],"cursor":90,"hasMore":false}`。只读取连接身份对应的事件，忽略客户端声明的用户 ID。`hasMore=true` 时用返回游标继续请求；客户端按事件 ID 去重。无需 HTTP 轮询。应用可用 `socket.events.reader` 指定带业务事务锁的读取服务。
+
 失败事件会保留，客户端按事件 ID 去重，清理已发布事件：
 
 ```bash

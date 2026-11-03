@@ -166,6 +166,14 @@ php artisan socket:events
 php artisan socket:events --once
 ```
 
+Authenticated WebSocket connections can replay missed events:
+
+```json
+{"type":"sync","after":80,"request_id":1}
+```
+
+The server returns `{"type":"events","request_id":1,"events":[...],"cursor":90,"hasMore":false}` for the authenticated recipient only, ignoring client-supplied user IDs. Continue from the returned cursor while `hasMore=true` and deduplicate by event ID. No HTTP polling is required. Set `socket.events.reader` to use an application reader with business transaction locks.
+
 Failed events remain pending. Clients should deduplicate by event ID. Cleanup removes expired published events:
 
 ```bash

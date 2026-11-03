@@ -3,6 +3,7 @@
 namespace GiorgioSocket\Services\Handlers;
 
 use GiorgioSocket\Services\ConnectionRegistry;
+use GiorgioSocket\Services\EventStore;
 use GiorgioSocket\Services\Handlers\Interfaces\SocketMessageInterface;
 use GiorgioSocket\Services\Native\Frame as NativeFrame;
 use GiorgioSocket\Services\Native\Server as NativeServer;
@@ -63,10 +64,31 @@ class SocketMessage implements SocketMessageInterface
                 return;
             }
             if ($data['type'] === 'ping' || ($data['data'] ?? null) === 'heart_beat') {
-                $registry->presence($id, true);
                 $server->push($frame->fd, json_encode(['type' => 'pong'], JSON_THROW_ON_ERROR));
             } elseif ($data['type'] === 'close') {
                 $server->disconnect($frame->fd, 1000, 'Client closed');
+            } elseif ($data['type'] === 'sync') {
+                if (! is_int($data['after'] ?? null) || $data['after'] < 0
+                    || ! is_int($data['request_id'] ?? null) || $data['request_id'] < 1) {
+                    throw new \InvalidArgumentException('Invalid event cursor or request ID.');
+                }
+                // Read only the authenticated recipient, never an ID supplied by the client.
+                $reader = config('socket.events.reader');
+                $page = $reader ? app($reader)($id, $data['after']) : app(EventStore::class)->after($id, $data['after']);
+                do {
+                    $packet = json_encode(['type' => 'events', 'request_id' => $data['request_id']] + $page, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+                    if (strlen($packet) <= (int) config('socket.max_message_bytes', 65536)) {
+                        $server->push($frame->fd, $packet);
+                        break;
+                    }
+                    if (count($page['events']) <= 1) {
+                        $server->disconnect($frame->fd, 1009, 'Event too large');
+                        break;
+                    }
+                    array_pop($page['events']);
+                    $page['cursor'] = $page['events'][count($page['events']) - 1]['id'];
+                    $page['hasMore'] = true;
+                } while (true);
             } elseif ($data['type'] === 'message' && config('socket.allow_client_messages', false) && isset($data['to']) && $data['to'] !== 'all') {
                 $this->deliver($server, (string) $data['to'], json_encode(array_merge($data, ['user_id' => $id]), JSON_THROW_ON_ERROR));
             } else {
