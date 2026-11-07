@@ -18,12 +18,13 @@ Laravel WebSocket server with Swoole and native PHP transports.
 ## Related packages
 
 - [Giorgio IM](https://github.com/m-finder/giorgio-im): Vue 3 + TypeScript instant messaging component
+- [Giorgio IM React](https://github.com/m-finder/giorgio-im-react): React + TypeScript instant messaging component
 - [Giorgio IM Socket](https://packagist.org/packages/wu/giorgio-im-socket): Laravel instant messaging backend
 - [Giorgio Socket](https://packagist.org/packages/wu/giorgio-socket): Laravel WebSocket infrastructure package
 
 ## Install
 
-Requirements: PHP 8.0.2+, Laravel 9+ and Redis. Direct TLS requires OpenSSL.
+The package minimum is PHP 8.0.2+ and Laravel 9+. PHP must also meet the requirements of the chosen Laravel version and dependencies. It also needs Redis; direct TLS requires OpenSSL.
 
 ```bash
 composer require wu/giorgio-socket

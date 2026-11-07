@@ -18,12 +18,13 @@ Laravel WebSocket 服务，支持 Swoole 和 PHP 原生驱动
 ## 相关包
 
 - [Giorgio IM](https://github.com/m-finder/giorgio-im)：Vue 3 + TypeScript 即时通讯组件
+- [Giorgio IM React](https://github.com/m-finder/giorgio-im-react)：React + TypeScript 即时通讯组件
 - [Giorgio IM Socket](https://packagist.org/packages/wu/giorgio-im-socket)：Laravel 即时通讯后端
 - [Giorgio Socket](https://packagist.org/packages/wu/giorgio-socket)：Laravel WebSocket 底层服务
 
 ## 安装
 
-环境要求：PHP 8.0.2+、Laravel 9+、Redis，直连 TLS 需要 OpenSSL
+本包最低要求 PHP 8.0.2+、Laravel 9+，实际 PHP 版本还需满足所用 Laravel 及依赖的要求。另需 Redis，直连 TLS 需要 OpenSSL。
 
 ```bash
 composer require wu/giorgio-socket
